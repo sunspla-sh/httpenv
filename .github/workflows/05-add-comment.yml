@@ -66,8 +66,8 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         if: github.event_name == 'pull_request'
         with:
-          comment_id: ${{ steps.fc.outputs.comment-id }}
-          issue_number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             Docker image tag(s) pushed:
             ```text
