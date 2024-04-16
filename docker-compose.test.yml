@@ -1,0 +1,25 @@
+services:
+
+  httpenv:
+    image: "${TESTING_IMAGE}"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./healthchecks:/healthchecks
+    healthcheck:
+      test: /healthchecks/postgres-healthcheck
+      interval: "5s"
+
+  sut:
+    image: "${TESTING_IMAGE}"
+    depends_on:
+      httpenv:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    # Run all tests here against the httpenv service
+    command: curl --fail http://httpenv:80 || exit 1

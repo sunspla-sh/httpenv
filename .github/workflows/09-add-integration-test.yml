@@ -1,0 +1,70 @@
+---
+name: 09 Build and Integration Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-image:
+    name: Build Images
+    runs-on: ubuntu-latest
+  
+    steps:
+      -
+        name: Checkout Git Repo
+        uses: actions/checkout@v4
+      -
+        name: Set Up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set Up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Log In To Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and Export To Docker Engine
+        uses: docker/build-push-action@v5
+        with:
+          push: false
+          load: true # Export to Docker Engine instead of pushing to an external registry
+          tags: ${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+      -
+        name: Test Healthcheck In Docker Compose
+        run: |
+          export TESTING_IMAGE="${{ github.run_id }}"
+          docker compose -f docker-compose.test.yml up --exit-code-from sut
+      -
+        name: Docker Metadata For Final Image Build
+        id: docker_metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/docker-ci-automation
+          flavor: |
+            latest=false
+          tags:
+            type=raw,value=09
+        # the following lines are commented out so as not to conflict with 04-add-metadata.yml
+          # type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
+          # type=ref,event=pr
+          # type=ref,event=branch
+          # type=semver,pattern={{version}}
+      -
+        name: Docker Build and Push To Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.docker_metadata.outputs.tags }}
+          labels: ${{ steps.docker_metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
