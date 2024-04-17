@@ -11,7 +11,7 @@ services:
     volumes:
       - ./healthchecks:/healthchecks
     healthcheck:
-      test: /healthchecks/postgres-healthcheck
+      test: ["CMD", "bash", "/healthchecks/postgres-healthcheck"]
       interval: "5s"
 
   sut:
