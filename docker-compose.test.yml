@@ -22,4 +22,4 @@ services:
       postgres:
         condition: service_healthy
     # Run all tests here against the httpenv service
-    command: curl --fail http://httpenv:80 || exit 1
+    command: curl --fail http://httpenv:8888 || exit 1
