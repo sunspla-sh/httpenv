@@ -49,7 +49,8 @@ jobs:
           cache-to: type=gha,mode=max
           platforms: linux/amd64
       -
-        name: AbsaOSS/k3d-action@v2
+        name: Create K3d Kubernetes Cluster
+        uses: AbsaOSS/k3d-action@v2
         with:
           cluster-name: "test-cluster-1"
           args: >-
